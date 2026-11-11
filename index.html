@@ -4,10 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071323">
-  <meta name="description" content="DEMO: Suvarnabhumi Airport flight arrival monitoring, pickup planner and two-point ANPR exception dashboard.">
+  <meta name="description" content="DEMO: Suvarnabhumi Airport interactive ANPR map, flight arrivals and pickup planning.">
   <title>Airport Intelligence · BKK ANPR & Arrivals Demo</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./spatial.css?v=1.1.0">
   <script defer src="./src/flight-provider.js"></script>
+  <script defer src="./src/spatial.js?v=1.1.0"></script>
   <script defer src="./src/app.js"></script>
 </head>
 <body>
@@ -19,7 +22,6 @@
         </div>
         <div><strong>AIRPORT<span>INTEL</span></strong><small>PERIMETER + FLIGHT OPERATIONS</small></div>
       </div>
-
       <div class="sidebar-group-label">COMMAND CENTER</div>
       <nav id="navigation" class="navigation" aria-label="Pages">
         <button class="nav-item is-active" data-view="overview" type="button"><span class="nav-glyph">▦</span><span>Overview</span><span class="nav-arrow">›</span></button>
@@ -29,17 +31,15 @@
         <button class="nav-item" data-view="anpr" type="button"><span class="nav-glyph">▣</span><span>ANPR Monitoring</span><span class="nav-arrow">›</span></button>
         <button class="nav-item" data-view="alerts" type="button"><span class="nav-glyph">⚑</span><span>Security Exceptions</span><span class="nav-arrow">›</span></button>
       </nav>
-
       <div class="sidebar-bottom">
         <div class="offline-panel">
           <div class="offline-eyebrow"><span class="status-dot"></span> PROTOTYPE MODE</div>
-          <strong>Simulation / Offline</strong>
+          <strong>Simulation / Demo</strong>
           <p>ไม่เชื่อมกล้องจริงหรือ AOT API ข้อมูลทั้งหมดเพื่อสาธิตเท่านั้น</p>
         </div>
-        <div class="sidebar-footer">BKK · SUVARNABHUMI<br>CONCEPT DEMONSTRATION v1.0</div>
+        <div class="sidebar-footer">BKK · SUVARNABHUMI<br>CONCEPT DEMONSTRATION v1.1.0</div>
       </div>
     </aside>
-
     <div class="workspace">
       <header class="topbar">
         <div class="topbar-heading">
@@ -52,14 +52,12 @@
           <a class="official-link" href="https://suvarnabhumi.airportthai.co.th/flight?type=arrivals" rel="noopener noreferrer" target="_blank">AOT Official Board <span aria-hidden="true">↗</span></a>
         </div>
       </header>
-
       <div class="demo-banner" role="note">
         <span class="demo-tag">DEMO DATA</span>
         <span>Flight times, plate numbers, CCTV events and alerts are simulated. <strong>ไม่ใช่ข้อมูลเที่ยวบินจริง หรือระบบรักษาความปลอดภัยที่กำลังใช้งานจริง</strong></span>
       </div>
-
       <main id="content" tabindex="-1" aria-live="polite"></main>
-      <footer class="page-footer"><span>Airport Perimeter & Flight Intelligence · Concept MVP</span><span>Flight source: <strong>SIMULATED</strong> · No AOT API connected</span></footer>
+      <footer class="page-footer"><span>Airport Perimeter & Flight Intelligence · Concept MVP v1.1.0</span><span>Flight source: <strong>SIMULATED</strong> · No AOT API connected</span></footer>
     </div>
   </div>
 </body>
