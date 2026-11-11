@@ -1,93 +1,56 @@
-/* Flight data boundary.
- * This file intentionally contains NO AOT endpoint, credentials or live API calls.
- * When AOT grants API access, keep the normalized shape but fetch through a
- * server-side /api/flights proxy. Do not expose AOT tokens in browser code.
+/* DEMO data adapter. Replace only the authorized server-side provider boundary
+ * when AOT supplies its schema and credentials. Never put API keys in this file.
  */
-(function (global) {
-  "use strict";
-
-  const MINUTE_MS = 60 * 1000;
-  const OFFICIAL_URL = "https://suvarnabhumi.airportthai.co.th/flight?type=arrivals";
-  const MODE = "demo";
-
-  // All flight numbers, airlines, origins and timings below are FICTIONAL test records.
-  const TEMPLATES = [
-    { id: "F101", flightNo: "DEMO-101", airline: "Sample Air", origin: "Singapore", originCode: "SIN", offset: -118, change: 0, landedOffset: -108, status: "LANDED", belt: "07" },
-    { id: "F202", flightNo: "DEMO-202", airline: "Example Airways", origin: "Tokyo / Haneda", originCode: "HND", offset: -47, change: 0, landedOffset: -34, status: "LANDED", belt: "11" },
-    { id: "F303", flightNo: "DEMO-303", airline: "Sample Air", origin: "Kuala Lumpur", originCode: "KUL", offset: 19, change: 64, status: "DELAYED", belt: "TBA" },
-    { id: "F404", flightNo: "DEMO-404", airline: "Concept Airlines", origin: "Seoul / Incheon", originCode: "ICN", offset: 38, change: 0, status: "ON_TIME", belt: "TBA" },
-    { id: "F505", flightNo: "DEMO-505", airline: "Example Airways", origin: "Paris", originCode: "CDG", offset: 77, change: 95, status: "DELAYED", belt: "TBA" },
-    { id: "F606", flightNo: "DEMO-606", airline: "Sample Air", origin: "Hong Kong", originCode: "HKG", offset: 99, change: 0, status: "ON_TIME", belt: "TBA" },
-    { id: "F707", flightNo: "DEMO-707", airline: "Concept Airlines", origin: "Doha", originCode: "DOH", offset: 126, change: 0, status: "CANCELLED", belt: "—" },
-    { id: "F808", flightNo: "DEMO-808", airline: "Example Airways", origin: "Chiang Mai", originCode: "CNX", offset: 148, change: 0, status: "ON_TIME", belt: "TBA" },
-    { id: "F909", flightNo: "DEMO-909", airline: "Sample Air", origin: "Phuket", originCode: "HKT", offset: 174, change: 35, status: "DELAYED", belt: "TBA" },
-    { id: "F110", flightNo: "DEMO-110", airline: "Concept Airlines", origin: "London / Heathrow", originCode: "LHR", offset: 205, change: 0, status: "ON_TIME", belt: "TBA" },
-    { id: "F120", flightNo: "DEMO-120", airline: "Example Airways", origin: "Manila", originCode: "MNL", offset: 242, change: 0, status: "ON_TIME", belt: "TBA" },
-    { id: "F130", flightNo: "DEMO-130", airline: "Sample Air", origin: "Osaka / Kansai", originCode: "KIX", offset: 279, change: 25, status: "DELAYED", belt: "TBA" }
+(function(global){
+  'use strict';
+  const MINUTE=60000;
+  const templates=[
+    ['F101','DEMO-101','Sample Air','Singapore','SIN',-118,0,-108,'LANDED','07'],
+    ['F202','DEMO-202','Example Airways','Tokyo / Haneda','HND',-47,0,-34,'LANDED','11'],
+    ['F303','DEMO-303','Sample Air','Kuala Lumpur','KUL',19,64,null,'DELAYED','TBA'],
+    ['F404','DEMO-404','Concept Airlines','Seoul / Incheon','ICN',38,0,null,'ON_TIME','TBA'],
+    ['F505','DEMO-505','Example Airways','Paris','CDG',77,95,null,'DELAYED','TBA'],
+    ['F606','DEMO-606','Sample Air','Hong Kong','HKG',99,0,null,'ON_TIME','TBA'],
+    ['F707','DEMO-707','Concept Airlines','Doha','DOH',126,0,null,'CANCELLED','—'],
+    ['F808','DEMO-808','Example Airways','Chiang Mai','CNX',148,0,null,'ON_TIME','TBA'],
+    ['F909','DEMO-909','Sample Air','Phuket','HKT',174,35,null,'DELAYED','TBA'],
+    ['F110','DEMO-110','Concept Airlines','London / Heathrow','LHR',205,0,null,'ON_TIME','TBA'],
+    ['F120','DEMO-120','Example Airways','Manila','MNL',242,0,null,'ON_TIME','TBA'],
+    ['F130','DEMO-130','Sample Air','Osaka / Kansai','KIX',279,25,null,'DELAYED','TBA']
   ];
-
-  const seededAt = Date.now();
-  function atOffset(minutes) {
-    return new Date(seededAt + minutes * MINUTE_MS).toISOString();
-  }
-
-  const demoFlights = TEMPLATES.map(function (f) {
-    return Object.freeze({
-      id: f.id,
-      flightNo: f.flightNo,
-      airline: f.airline,
-      origin: f.origin,
-      originCode: f.originCode,
-      scheduledAt: atOffset(f.offset),
-      estimatedAt: f.status === "CANCELLED" ? null : atOffset(f.offset + f.change),
-      actualAt: f.status === "LANDED" ? atOffset(f.landedOffset) : null,
-      status: f.status,
-      belt: f.belt,
-      terminal: "MAIN",
-      source: "DEMO"
+  function list(){
+    const data=global.ANPRStore.snapshot(),base=data.flightSeedAt;
+    return templates.map(t=>{
+      const at=n=>new Date(base+n*MINUTE).toISOString();
+      const f={id:t[0],flightNo:t[1],airline:t[2],origin:t[3],originCode:t[4],scheduledAt:at(t[5]),estimatedAt:t[8]==='CANCELLED'?null:at(t[5]+t[6]),actualAt:t[7]===null?null:at(t[7]),status:t[8],belt:t[9],terminal:'MAIN',source:'DEMO',updatedAt:new Date(base).toISOString()};
+      const o=data.flightOverrides[f.id];
+      if(o){
+        f.updatedAt=o.at;f.actualAt=null;
+        if(o.scenario==='cancelled'){f.status='CANCELLED';f.estimatedAt=null;f.belt='—';}
+        else if(o.scenario==='landed'){f.status='LANDED';f.actualAt=o.at;f.estimatedAt=o.at;}
+        else {const delay=o.scenario==='delay60'?60:o.scenario==='delay120'?120:0;f.status=delay?'DELAYED':'ON_TIME';f.estimatedAt=new Date(Date.parse(f.scheduledAt)+delay*MINUTE).toISOString();}
+      }
+      return f;
     });
-  });
-
-  function delayMinutes(flight) {
-    if (flight.status === "CANCELLED") return 0;
-    const latest = flight.actualAt || flight.estimatedAt;
-    if (!latest) return 0;
-    return Math.max(0, Math.round((Date.parse(latest) - Date.parse(flight.scheduledAt)) / MINUTE_MS));
   }
-
-  function clampMinutes(value, fallback, min, max) {
-    const number = value === undefined || value === null || value === "" ? fallback : Number(value);
-    return Math.max(min, Math.min(max, Number.isFinite(number) ? number : fallback));
+  function delayMinutes(f){
+    if(!f||f.status==='CANCELLED')return 0;
+    const ms=Date.parse(f.actualAt||f.estimatedAt)-Date.parse(f.scheduledAt);
+    return Number.isFinite(ms)?Math.max(0,Math.round(ms/MINUTE)):0;
   }
-
-  function planPickup(flight, options) {
-    if (!flight || flight.status === "CANCELLED") return null;
-    options = options || {};
-    const travelMinutes = clampMinutes(options.travelMinutes, 60, 1, 300);
-    const passengerProcessingMinutes = clampMinutes(options.passengerProcessingMinutes, 50, 0, 240);
-    const arrivalBufferMinutes = clampMinutes(options.arrivalBufferMinutes, 10, 0, 120);
-    const arrivalAt = flight.actualAt || flight.estimatedAt || flight.scheduledAt;
-    const meetingAt = new Date(Date.parse(arrivalAt) + passengerProcessingMinutes * MINUTE_MS);
-    const departAt = new Date(meetingAt.getTime() - (travelMinutes + arrivalBufferMinutes) * MINUTE_MS);
-    return {
-      flightArrivalAt: arrivalAt,
-      meetingAt: meetingAt.toISOString(),
-      departAt: departAt.toISOString(),
-      travelMinutes: travelMinutes,
-      passengerProcessingMinutes: passengerProcessingMinutes,
-      arrivalBufferMinutes: arrivalBufferMinutes
-    };
+  function bounded(value,fallback,min,max){
+    const n=value===undefined||value===null||value===''?fallback:Number(value);
+    return Math.min(max,Math.max(min,Number.isFinite(n)?n:fallback));
   }
-
-  global.FlightProvider = Object.freeze({
-    mode: MODE,
-    officialUrl: OFFICIAL_URL,
-    lastUpdatedAt: new Date(seededAt).toISOString(),
-    getArrivals: async function () {
-      // Consistent async contract; no external server request in DEMO mode.
-      return demoFlights.map(function (f) { return Object.assign({}, f); });
-    },
-    delayMinutes: delayMinutes,
-    planPickup: planPickup
+  function planPickup(f,options={}){
+    if(!f||f.status==='CANCELLED')return null;
+    const arrival=f.actualAt||f.estimatedAt||f.scheduledAt,ms=Date.parse(arrival);
+    if(!Number.isFinite(ms))return null;
+    const travelMinutes=bounded(options.travelMinutes,60,1,300),passengerProcessingMinutes=bounded(options.passengerProcessingMinutes,50,0,240),arrivalBufferMinutes=bounded(options.arrivalBufferMinutes,10,0,120);
+    const meeting=ms+passengerProcessingMinutes*MINUTE,depart=meeting-(travelMinutes+arrivalBufferMinutes)*MINUTE;
+    return {flightArrivalAt:arrival,meetingAt:new Date(meeting).toISOString(),departAt:new Date(depart).toISOString(),travelMinutes,passengerProcessingMinutes,arrivalBufferMinutes};
+  }
+  global.FlightProvider=Object.freeze({mode:'demo',officialUrl:'https://suvarnabhumi.airportthai.co.th/flight?type=arrivals',list,getArrivals:async()=>list(),delayMinutes,planPickup,
+    get lastUpdatedAt(){const s=global.ANPRStore.snapshot();return Object.values(s.flightOverrides).map(o=>o.at).sort().at(-1)||new Date(s.flightSeedAt).toISOString();}
   });
 })(window);

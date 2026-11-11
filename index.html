@@ -4,61 +4,47 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071323">
-  <meta name="description" content="DEMO: Suvarnabhumi Airport interactive ANPR map, flight arrivals and pickup planning.">
+  <meta name="description" content="DEMO: Suvarnabhumi interactive ANPR map, flight arrivals, pickup planning and case review.">
   <title>Airport Intelligence · BKK ANPR & Arrivals Demo</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./spatial.css?v=1.1.0">
-  <script defer src="./src/flight-provider.js"></script>
-  <script defer src="./src/spatial.js?v=1.1.0"></script>
-  <script defer src="./src/app.js"></script>
+  <link rel="stylesheet" href="./styles.css?v=1.2.0">
+  <link rel="stylesheet" href="./spatial.css?v=1.2.0">
+  <link rel="stylesheet" href="./review-fixes.css?v=1.2.0">
+  <script defer src="./src/store.js?v=1.2.0"></script>
+  <script defer src="./src/flight-provider.js?v=1.2.0"></script>
+  <script defer src="./src/spatial.js?v=1.2.0"></script>
+  <script defer src="./src/app.js?v=1.2.0"></script>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" aria-label="Main navigation">
-      <div class="identity">
-        <div class="identity-symbol" aria-hidden="true">
-          <svg viewBox="0 0 42 42" fill="none"><path d="M21 2 37 10v12c0 10-7 15-16 19C12 37 5 32 5 22V10L21 2Z" stroke="currentColor" stroke-width="2"/><path d="m11 24 21-8M13 16l18 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="21" cy="21" r="4" fill="currentColor"/></svg>
-        </div>
-        <div><strong>AIRPORT<span>INTEL</span></strong><small>PERIMETER + FLIGHT OPERATIONS</small></div>
-      </div>
-      <div class="sidebar-group-label">COMMAND CENTER</div>
-      <nav id="navigation" class="navigation" aria-label="Pages">
-        <button class="nav-item is-active" data-view="overview" type="button"><span class="nav-glyph">▦</span><span>Overview</span><span class="nav-arrow">›</span></button>
-        <button class="nav-item" data-view="flights" type="button"><span class="nav-glyph">✈</span><span>Flight Arrivals</span><span class="nav-arrow">›</span></button>
-        <button class="nav-item" data-view="pickup" type="button"><span class="nav-glyph">⌖</span><span>Pickup Planner</span><span class="nav-arrow">›</span></button>
-        <div class="sidebar-group-label inner">PERIMETER OPERATIONS</div>
-        <button class="nav-item" data-view="anpr" type="button"><span class="nav-glyph">▣</span><span>ANPR Monitoring</span><span class="nav-arrow">›</span></button>
-        <button class="nav-item" data-view="alerts" type="button"><span class="nav-glyph">⚑</span><span>Security Exceptions</span><span class="nav-arrow">›</span></button>
-      </nav>
-      <div class="sidebar-bottom">
-        <div class="offline-panel">
-          <div class="offline-eyebrow"><span class="status-dot"></span> PROTOTYPE MODE</div>
-          <strong>Simulation / Demo</strong>
-          <p>ไม่เชื่อมกล้องจริงหรือ AOT API ข้อมูลทั้งหมดเพื่อสาธิตเท่านั้น</p>
-        </div>
-        <div class="sidebar-footer">BKK · SUVARNABHUMI<br>CONCEPT DEMONSTRATION v1.1.0</div>
-      </div>
-    </aside>
-    <div class="workspace">
-      <header class="topbar">
-        <div class="topbar-heading">
-          <div class="eyebrow">SUVARNABHUMI AIRPORT <span class="dot-separator">·</span> BANGKOK, THAILAND</div>
-          <h1 id="pageTitle">Operations Overview</h1>
-          <p id="pageSubtitle">ภาพรวมเที่ยวบินขาเข้าและการเฝ้าระวังยานพาหนะในพื้นที่ควบคุม</p>
-        </div>
-        <div class="topbar-actions">
-          <div class="local-clock"><span class="small-muted">THAILAND TIME / UTC+7</span><strong id="thClock">--:--:--</strong></div>
-          <a class="official-link" href="https://suvarnabhumi.airportthai.co.th/flight?type=arrivals" rel="noopener noreferrer" target="_blank">AOT Official Board <span aria-hidden="true">↗</span></a>
-        </div>
-      </header>
-      <div class="demo-banner" role="note">
-        <span class="demo-tag">DEMO DATA</span>
-        <span>Flight times, plate numbers, CCTV events and alerts are simulated. <strong>ไม่ใช่ข้อมูลเที่ยวบินจริง หรือระบบรักษาความปลอดภัยที่กำลังใช้งานจริง</strong></span>
-      </div>
-      <main id="content" tabindex="-1" aria-live="polite"></main>
-      <footer class="page-footer"><span>Airport Perimeter & Flight Intelligence · Concept MVP v1.1.0</span><span>Flight source: <strong>SIMULATED</strong> · No AOT API connected</span></footer>
-    </div>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="identity"><div class="identity-symbol" aria-hidden="true"><svg viewBox="0 0 42 42" fill="none"><path d="M21 2 37 10v12c0 10-7 15-16 19C12 37 5 32 5 22V10L21 2Z" stroke="currentColor" stroke-width="2"/><path d="m11 24 21-8M13 16l18 10" stroke="currentColor" stroke-width="2"/><circle cx="21" cy="21" r="4" fill="currentColor"/></svg></div><div><strong>AIRPORT<span>INTEL</span></strong><small>PERIMETER + FLIGHT OPERATIONS</small></div></div>
+    <div class="sidebar-group-label">COMMAND CENTER</div>
+    <nav id="navigation" class="navigation" aria-label="Pages">
+      <button class="nav-item is-active" data-view="overview" type="button"><span class="nav-glyph">▦</span><span>Overview</span></button>
+      <button class="nav-item" data-view="map" data-spatial-view="map" type="button"><span class="nav-glyph">⌖</span><span>Map & Diagrams</span></button>
+      <button class="nav-item" data-view="flights" type="button"><span class="nav-glyph">✈</span><span>Flight Arrivals</span></button>
+      <button class="nav-item" data-view="pickup" type="button"><span class="nav-glyph">⌖</span><span>Pickup Planner</span></button>
+      <div class="sidebar-group-label inner">PERIMETER OPERATIONS</div>
+      <button class="nav-item" data-view="anpr" type="button"><span class="nav-glyph">▣</span><span>ANPR Monitoring</span></button>
+      <button class="nav-item" data-view="alerts" type="button"><span class="nav-glyph">⚑</span><span>Security Exceptions</span></button>
+      <button class="nav-item" data-view="cases" type="button"><span class="nav-glyph">▤</span><span>Cases & Evidence</span></button>
+      <button class="nav-item" data-view="analytics" data-spatial-view="analytics" type="button"><span class="nav-glyph">▥</span><span>Analytics</span></button>
+      <button class="nav-item" data-view="configuration" type="button"><span class="nav-glyph">⚙</span><span>Configuration</span></button>
+    </nav>
+    <div class="sidebar-bottom"><div class="offline-panel"><div class="offline-eyebrow"><span class="status-dot"></span><span id="persistenceLabel">BROWSER DEMO</span></div><strong>Simulation / No backend</strong><p>ไม่เชื่อมกล้องจริงหรือ AOT API ข้อมูลและการตอบสนองทั้งหมดเป็น DEMO</p><label class="mask-control"><input type="checkbox" id="maskPlatesToggle"> ปิดบังทะเบียนบนตาราง</label></div><div class="sidebar-footer">BKK · SUVARNABHUMI<br>DEMO v1.2.0 · CASE REVIEW RESTORED</div></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div class="topbar-heading"><div class="eyebrow">SUVARNABHUMI AIRPORT · BANGKOK, THAILAND</div><h1 id="pageTitle">Operations Overview</h1><p id="pageSubtitle">แผนที่ เที่ยวบิน และการตรวจสอบเคส</p></div><div class="topbar-actions"><div class="local-clock"><span class="small-muted">THAILAND TIME / UTC+7</span><strong id="thClock">--:--:--</strong></div><a class="official-link" href="https://suvarnabhumi.airportthai.co.th/flight?type=arrivals" rel="noopener noreferrer" target="_blank">AOT Official Board ↗</a></div></header>
+    <div class="demo-banner" role="note"><span class="demo-tag">DEMO DATA</span><span>Flight times, plates, CCTV observations and responses are simulated. <strong>ไม่ใช่ข้อมูลเที่ยวบินจริง และไม่สั่งเจ้าหน้าที่หรือออกค่าปรับจริง</strong></span></div>
+    <div id="storageNotice" class="storage-notice" role="status" hidden><span id="storageMessage"></span><button class="mini-btn" type="button" data-action="reset">Reset DEMO</button></div>
+    <main id="content" tabindex="-1"></main>
+    <noscript>ต้องเปิด JavaScript เพื่อใช้ Dashboard จำลองนี้</noscript>
+    <footer class="page-footer"><span>Airport Perimeter & Flight Intelligence · v1.2.0</span><span>Source: <strong>SIMULATED</strong> · No AOT API connected</span></footer>
   </div>
+</div>
+<dialog id="caseDialog" class="review-dialog" aria-labelledby="caseDialogTitle"><div class="dialog-inner"><header class="dialog-header"><div><span class="section-label">CASE DETAIL · DEMO</span><h2 id="caseDialogTitle">Case</h2></div><button class="btn" type="button" id="closeCaseDialog" aria-label="ปิดรายละเอียดเคส">×</button></header><div id="caseDialogBody"></div></div></dialog>
+<dialog id="cctvDialog" class="review-dialog compact-dialog" aria-labelledby="cctvTitle"><div class="dialog-inner"><header class="dialog-header"><h2 id="cctvTitle">CCTV Event · DEMO</h2><button class="btn" type="button" id="closeCctvDialog" aria-label="ปิดแบบฟอร์ม CCTV">×</button></header><form id="cctvForm"><input type="hidden" id="cctvVehicle"><div class="form-grid"><label class="form-field" for="cctvMinutes">เวลาหยุดที่สังเกต (นาที)<input class="number-input" type="number" id="cctvMinutes" min="0" max="1440" step="1" required></label><label class="form-field" for="cctvZone">ตำแหน่งที่สังเกต<select class="select-input" id="cctvZone"><option value="—">นอกโซน / ไม่ทราบ</option><option>DEMO-ZONE-A</option><option>DEMO-ZONE-B</option></select></label></div><p class="inline-note warning">เป็นการจำลองข้อมูลสังเกต ไม่ได้วิเคราะห์ภาพจริง เวลาหยุดต้องไม่เกินเวลาผ่านเส้นทางของรถ</p><button class="btn primary" type="submit">บันทึก CCTV จำลอง</button></form></div></dialog>
+<div id="toast" class="app-toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

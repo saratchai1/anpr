@@ -1,60 +1,35 @@
-# Suvarnabhumi ANPR + Flight Arrivals (DEMO)
+# Airport Intelligence — ANPR + BKK Flight DEMO v1.2.0
 
-A frontend-only, no-backend concept application combining two ANPR checkpoints and inbound-flight pickup planning for Suvarnabhumi Airport (BKK).
+Frontend-only demonstration. Open `index.html` in a modern browser, or serve this directory with `python3 -m http.server 8080`. Static deployment on Vercel; no build, login, backend, camera credentials or AOT API key needed.
 
-**Status: DEMO / NOT LIVE.** All flight numbers, flight times, ANPR plates, CCTV events and alerts are invented. Nothing here is connected to AOT, operational CCTV, airport security, or a payment/enforcement system.
+**Everything except the user-supplied camera coordinates and public basemap is simulated.** No real flight feed, GPS tracking, CCTV, dispatch, fine or watchlist connection exists.
 
-## Run
+## Preserved and restored screens
 
-Open `index.html` in a modern browser. The prototype has no dependencies, no build step, no login, no backend, no health check, and no API key. It can also be hosted as a static website on Vercel (Framework Preset: Other; project root: `.`).
+Overview; Map & Diagrams; Flight Arrivals; Pickup Planner; ANPR Monitoring; Security Exceptions; Cases & Evidence; Analytics; Configuration. Maps remain interactive, with both original camera coordinates, demo layers, collision-separated vehicle markers and an accessible vehicle selector. A blocked Leaflet download shows a schematic fallback without blocking the other screens.
 
-## Features
+## Review fixes
 
-- Operations overview with flight arrivals, flight delays and ANPR exceptions.
-- BKK arrivals flight board: original scheduled time, revised ETA / actual arrival, delays, status, search and filters.
-- Pickup planning: estimated meeting time after immigration/baggage, adjustable driving time and buffer, suggested leave-home time.
-- Two ANPR gate checkpoints, travel-time anomalies (>30 minutes), mock CCTV corroboration, three-level review workflow, case export as CSV.
-- Scenario controls, mock data, and localStorage persistence for ANPR simulations.
+- `src/store.js` is the shared source of truth for every screen. Versioned validation/migration skips malformed entries and recovers corrupt data. In-memory mode works when localStorage is denied. Storage events and BroadcastChannel synchronize same-origin browser tabs; Web Locks serialize persistent writes where supported. This is **not multi-user, multi-device or server storage**. Without Web Locks, simultaneous writes have only best-effort coordination. Browser data is user-editable and not a secure audit trail.
+- Vehicle movement and case lifecycle are separate. A case retains its peak observed severity/score after exit, policy changes or new observations. New → review → dispatched (simulated) → closed; closing and reopening require reasons. Exported DEMO evidence contains observations, policy, timeline and case history, never fabricated camera images.
+- Passage/missing-exit alone is at most a time warning. Enforcement requires an observed stop at/above the configurable threshold **and** a recognized demo zone. Security review requires the longer stop threshold in that zone. Risk weights change scores, not evidence gates. A zero-minute stop is not a stop violation. Historical case levels do not silently decrease.
+- Case popups open the selected vehicle, not an unfiltered list. All controls are keyboard reachable; native dialogs handle focus and Escape.
+- Flight scenarios: on-time, +60/+120 minutes from scheduled arrival, landed, cancelled, restore baseline. Pickup advice updates immediately. The demo seed time persists through reloads; reset restores a fresh set. Times include dates and use Asia/Bangkok.
 
-**Important:** Elapsed time between two cameras does **not** establish that a vehicle parked, stopped illegally, or posed a threat. Only independently verified CCTV evidence can substantiate stop-related cases. All alerts require human review; the application never issues actual fines or security actions.
+## AOT integration boundary
 
-## Future AOT API integration
+`src/flight-provider.js` normalizes `{id, flightNo, airline, origin, originCode, scheduledAt, estimatedAt, actualAt, status, belt, terminal, source, updatedAt}`. When AOT provides authorized access, add a server-side proxy and map the documented schema. Keep keys on the server; do not guess an endpoint, remove DEMO labels before verification, or silently substitute simulated values for failed live data. Add authentication, role controls, retention, audit integrity, rate limiting and stale-data handling before operational use.
 
-Flight records go through the single adapter in `src/flight-provider.js`.
+## Rules / time interpretation
 
-The normalized flight object has fields:
+Default thresholds are **illustrative**: passage >30 minutes; missing exit >=45 minutes; observed stop >=5 minutes; longer stop >=15 minutes. Zones A/B are invented demonstration circles, not approved airport security perimeters. Two ANPR points cannot establish illegal parking, vehicle position between cameras, or hostile intent. The map's dashed line is not a road route. Case closure is an operator decision and not triggered by an exit event.
 
-```js
-{
-  id, flightNo, airline, origin, originCode,
-  scheduledAt, estimatedAt, actualAt,
-  status, belt, terminal, source
-}
-```
+## Files
 
-Once AOT supplies endpoint specifications, credentials, legal permissions and update intervals:
+- `index.html`, `styles.css`, `spatial.css`, `review-fixes.css` — responsive UI.
+- `src/store.js` — validation, rules, persistence, synchronization, cases and policy history.
+- `src/flight-provider.js` — simulated arrivals and pickup calculations.
+- `src/spatial.js` — retained map, schematic, workflow, analytics.
+- `src/app.js` — views, case dialog, scenario controls and exports.
 
-1. Create a **server-side** proxy (e.g. Vercel Function `/api/flights`) to call the authorized AOT endpoint. **Do not put AOT API keys in frontend JS or Vercel variables prefixed `VITE_`.**
-2. Implement the documented AOT response-to-normalized-object mapping in the proxy, with explicit timezone `Asia/Bangkok`, codeshare handling, cancellations, data freshness, and error handling. Do not guess the schema.
-3. Replace `FlightProvider.getArrivals()` demo implementation with a call to the proxy, include a `source` label and last-updated time, and provide an explicit unavailable/stale state.
-4. Only change the UI's **DEMO** labeling after verified live data is supplied and the operational deployment is authorized.
-
-Official public reference: https://suvarnabhumi.airportthai.co.th/flight?type=arrivals
-
-## ANPR demo checkpoint coordinates
-
-- Camera 1 (entry): `13.649323184689877, 100.74713256767531`
-- Camera 2 (exit): `13.709441941455099, 100.7693773608348`
-
-They are shown as labeled checkpoints only, not proof of a particular road route or any security-sensitive sightline.
-
-## Privacy / safety
-
-Only non-identifying TEST plates are included. Production use requires data protection review, role-based access, audit logging, retention limits and validated camera evidence. Do not treat mock detections or automated scores as factual security findings.
-
-## Repository layout
-
-- `index.html` — document shell
-- `styles.css` — responsive presentation dashboard
-- `src/flight-provider.js` — normalized demo flight data and future API boundary
-- `src/app.js` — UI, interaction, ANPR simulator, case export
+The prior version is retained in Git history at `0293ad8`. The production site is `https://anpr-suvarnabhumi.vercel.app/`; source is `https://github.com/saratchai1/anpr`.
