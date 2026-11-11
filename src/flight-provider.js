@@ -49,17 +49,23 @@
   });
 
   function delayMinutes(flight) {
-    if (flight.status === "CANCELLED" || flight.status === "LANDED") return 0;
-    if (!flight.estimatedAt) return 0;
-    return Math.max(0, Math.round((Date.parse(flight.estimatedAt) - Date.parse(flight.scheduledAt)) / MINUTE_MS));
+    if (flight.status === "CANCELLED") return 0;
+    const latest = flight.actualAt || flight.estimatedAt;
+    if (!latest) return 0;
+    return Math.max(0, Math.round((Date.parse(latest) - Date.parse(flight.scheduledAt)) / MINUTE_MS));
+  }
+
+  function clampMinutes(value, fallback, min, max) {
+    const number = value === undefined || value === null || value === "" ? fallback : Number(value);
+    return Math.max(min, Math.min(max, Number.isFinite(number) ? number : fallback));
   }
 
   function planPickup(flight, options) {
     if (!flight || flight.status === "CANCELLED") return null;
     options = options || {};
-    const travelMinutes = Math.max(1, Math.min(300, Number(options.travelMinutes) || 60));
-    const passengerProcessingMinutes = Math.max(0, Math.min(240, Number(options.passengerProcessingMinutes) || 50));
-    const arrivalBufferMinutes = Math.max(0, Math.min(120, Number(options.arrivalBufferMinutes) || 10));
+    const travelMinutes = clampMinutes(options.travelMinutes, 60, 1, 300);
+    const passengerProcessingMinutes = clampMinutes(options.passengerProcessingMinutes, 50, 0, 240);
+    const arrivalBufferMinutes = clampMinutes(options.arrivalBufferMinutes, 10, 0, 120);
     const arrivalAt = flight.actualAt || flight.estimatedAt || flight.scheduledAt;
     const meetingAt = new Date(Date.parse(arrivalAt) + passengerProcessingMinutes * MINUTE_MS);
     const departAt = new Date(meetingAt.getTime() - (travelMinutes + arrivalBufferMinutes) * MINUTE_MS);
