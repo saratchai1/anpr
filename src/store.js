@@ -248,7 +248,7 @@
       if(action==='close')c.resolution=note;
       c.timeline.push(event('OPERATOR_'+action.toUpperCase(),'Demo operator: '+before+' → '+c.status+(note?' / '+note:'')+' (จำลองเท่านั้น ไม่ส่งคำสั่งจริง)'));
     }); },
-    saveConfig(input, reason) { const checked=policy(input,true);reason=text(reason,500).trim();
+    async saveConfig(input, reason) { const checked=policy(input,true);reason=text(reason,500).trim();
       if(reason.length<3)return Promise.reject(new Error('กรุณาระบุเหตุผลเปลี่ยนกฎอย่างน้อย 3 ตัวอักษร'));
       return mutate(s=>{checked.revision=s.config.revision+1;s.config=copy(checked);s.policyLog.push({at:iso(),detail:'Policy demo-'+checked.revision+': '+reason,source:'DEMO'});});
     },

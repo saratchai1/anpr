@@ -49,7 +49,7 @@
       if(e.target.id==='mapVehicleSelect'&&e.target.value){
         selectedId=e.target.value;
         if(!vehiclesOn){vehiclesOn=true;el.querySelector('[data-sp-toggle="vehicles"]').checked=true;}
-        alertsOnly=false;el.querySelector('[data-sp-toggle="alerts"]').checked=false;refresh();
+        alertsOnly=false;el.querySelector('[data-sp-toggle="alerts"]').checked=false;if(map)map.closePopup();refresh();
         const marker=markers.get(selectedId);if(marker){map.panTo(marker.getLatLng());marker.openPopup();}
       }
     });return el;
@@ -59,7 +59,7 @@
     mapNode.hidden=false;panel.querySelector('.sp-map-fallback').hidden=true;status('กำลังโหลดแผนที่พื้นฐาน…');
     loadLibrary().then(L=>{
       if(map)return;
-      map=L.map(mapNode,{scrollWheelZoom:false,zoomControl:true}).setView([13.6795,100.758],13);
+      map=L.map(mapNode,{scrollWheelZoom:false,zoomControl:true,fadeAnimation:false}).setView([13.6795,100.758],13);
       mapNode.dataset.ready='true';
       tileLayer=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}).addTo(map);
       tileLayer.on('tileload',()=>{tilesOK++;status('แผนที่พร้อม · สถานการณ์ DEMO');});
@@ -80,7 +80,7 @@
     select.innerHTML='<option value="">เลือกทะเบียน</option>'+active.map(v=>`<option value="${esc(v.id)}">${esc(v.plate)}</option>`).join('');select.value=value;
     if(!map||!vehicleLayer)return;
     const popupId=[...markers.entries()].find(([,m])=>m.isPopupOpen())?.[0];
-    vehicleLayer.clearLayers();markers.clear();if(!vehiclesOn)return;
+    map.closePopup();vehicleLayer.clearLayers();markers.clear();if(!vehiclesOn)return;
     const occupied=[ENTRY,EXIT].map(p=>map.latLngToContainerPoint(p));
     active.forEach((v,i)=>{
       const a=assessment(v,data);if(alertsOnly&&a.level==='NORMAL')return;
